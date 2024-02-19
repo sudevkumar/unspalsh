@@ -1,19 +1,32 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { URL } from "../assests/assets";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const payload = {
       email,
       password,
     };
 
-    console.log(payload);
+    const res = await axios.post(URL + "/auth/login", payload);
+   
+    if (res.status === 200) {
+      localStorage.setItem(
+        "token",
+        JSON.stringify({ token: res?.data?.token, user: res?.data?.user })
+      );
+      toast.success("Login successful!");
+      navigate("/")
+    }
   };
 
   return (

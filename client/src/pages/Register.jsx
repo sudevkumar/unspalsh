@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { Image } from "cloudinary-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios"
+import { URL } from "../assests/assets";
+import toast from "react-hot-toast";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -9,6 +12,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const navigate = useNavigate();
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -27,15 +31,26 @@ const Register = () => {
       .catch((error) => console.error("Error:", error));
   };
 
-  const handleRegister = () => {
-    const payload = {
-      name,
-      email,
-      password,
-      imageUrl,
-    };
+  const handleRegister = async () => {
+    try {
+      const payload = {
+        name,
+        email,
+        password,
+        imageUrl,
+      };
 
-    console.log(payload);
+      console.log(payload)
+  
+      const res = await axios.post(URL + "/auth/register", payload)
+      if (res.status === 200) {
+       
+        toast.success("Register successful!");
+        navigate("/login")
+      }
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   return (
