@@ -15,9 +15,10 @@ const corsOptions = {
   Credential: true,
 };
 
-// Connect to db
+// Connect to db done
 
 const connectDb = async () => {
+  
   try {
     await mongoose.connect(process.env.MONGO_URL);
     console.log("Data base is connected successfully!");
