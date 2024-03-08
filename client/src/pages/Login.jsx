@@ -1,31 +1,45 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { URL } from "../assests/assets";
 import toast from "react-hot-toast";
+import { UserContext } from "../context/userContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { setLogOut, logout } = useContext(UserContext);
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-    const payload = {
-      email,
-      password,
-    };
+    if (email.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
 
-    const res = await axios.post(URL + "/auth/login", payload);
-   
-    if (res.status === 200) {
-      localStorage.setItem(
-        "token",
-        JSON.stringify({ token: res?.data?.token, user: res?.data?.user })
-      );
-      toast.success("Login successful!");
-      navigate("/")
+    if (password.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
+    try {
+      const payload = {
+        email,
+        password,
+      };
+
+      const res = await axios.post(URL + "/auth/login", payload);
+
+      if (res.status === 200) {
+        localStorage.setItem(
+          "token",
+          JSON.stringify({ token: res?.data?.token, user: res?.data?.user })
+        );
+        toast.success("Login successful!");
+        navigate("/");
+        setLogOut(!logout);
+      }
+    } catch (error) {
+      toast.error(error.response.data);
     }
   };
 
@@ -48,19 +62,21 @@ const Login = () => {
             </label>
             <input
               type="text"
-              className=" border-b  outline-none py-1 font-thin text-sm "
+              className=" border rounded-md mt-2 px-3 py-1   outline-none  font-thin text-sm"
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email Id..."
             />
           </div>
           <div className=" flex flex-col ">
             <label htmlFor="" className=" text-sm  font-thin">
               User's Password
             </label>
-            <div className=" border-b flex">
+            <div className=" border rounded-md mt-2  px-3 py-1 flex">
               <input
                 type={showPassword ? "text" : "password"}
-                className=" w-full  outline-none py-1 font-thin text-sm"
+                className=" w-full rounded-md  outline-none  font-thin text-sm"
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password..."
               />
               {showPassword ? (
                 <FaRegEye
@@ -88,7 +104,9 @@ const Login = () => {
           <p className=" text-sm">
             Dont't have an account?{" "}
             <Link to={"/register"}>
-              <span className=" text-sm text-[#672aba]">Register now!</span>
+              <span className=" text-sm text-[#672aba] cursor-pointer">
+                Register now!
+              </span>
             </Link>
           </p>
         </div>

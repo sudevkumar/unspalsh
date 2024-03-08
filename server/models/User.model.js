@@ -6,12 +6,16 @@ const UserSchema = new mongoose.Schema(
       require: true,
     },
 
+    desc: {
+      type: String,
+      require: true,
+    },
+
     email: {
       type: String,
       default: 0,
       unique: true,
     },
-
     password: {
       type: String,
       require: true,
@@ -21,6 +25,9 @@ const UserSchema = new mongoose.Schema(
       type: String,
     },
 
+    plus: {
+      type: Boolean,
+    },
   },
   { timestamps: true }
 );

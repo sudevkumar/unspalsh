@@ -5,6 +5,9 @@ const cors = require("cors");
 
 // All Routers
 const authRouter = require("./routes/auth.route");
+const postRouter = require("./routes/post.route");
+const userRouter = require("./routes/user.route");
+const favRouter = require("./routes/favorite.route");
 
 
 // App initiate
@@ -15,9 +18,10 @@ const corsOptions = {
   Credential: true,
 };
 
-// Connect to db
+// Connect to db done
 
 const connectDb = async () => {
+  
   try {
     await mongoose.connect(process.env.MONGO_URL);
     console.log("Data base is connected successfully!");
@@ -34,6 +38,9 @@ app.use(cors(corsOptions));
 
 // Routes
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/post", postRouter);
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/fav", favRouter);
 
 
 // Connect to server
