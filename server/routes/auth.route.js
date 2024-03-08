@@ -7,14 +7,16 @@ const UserModel = require("../models/User.model");
 //REGISTER
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, imageUrl } = req.body;
+    const { name, email, password, imageUrl, desc } = req.body;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hashSync(password, salt);
     let newUser = await UserModel.create({
       name,
       email,
+      desc,
       password: hashedPassword,
-      imageUrl
+      imageUrl,
+      plus: false,
     });
     res.status(200).send(newUser);
   } catch (err) {
@@ -33,14 +35,16 @@ router.post("/login", async (req, res, next) => {
     const match = await bcrypt.compare(req.body.password, user.password);
 
     if (!match) {
-      return res.status(401).send("Wrong credentials!");
+      return res.status(401).send("Incorect password!");
     }
     const token = jwt.sign(
       {
         _id: user._id,
         name: user.name,
         email: user.email,
-        imageUrl: user.imageUrl
+        imageUrl: user.imageUrl,
+        plus: user.plus,
+        desc: user.desc,
       },
       process.env.SECRET
     );

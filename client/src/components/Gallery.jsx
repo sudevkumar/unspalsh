@@ -1,77 +1,214 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./gallery.css";
+import { AiFillHeart } from "react-icons/ai";
+import { IoMdDownload } from "react-icons/io";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { URL as URLS } from "../assests/assets";
+import toast from "react-hot-toast";
+import PopModal from "../pages/PopModal";
+import { saveAs } from "file-saver";
 
-const Gallery = () => {
-  const data = [
-    {
-      id: 1,
-      img: "https://plus.unsplash.com/premium_photo-1707155465657-14237103f0a9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8fA%3D%3D",
-    },
+const Gallery = ({ data }) => {
+  const [datas, setDatas] = useState(false);
+  const [popModal, setPopModal] = useState("");
+  const [openPopModal, setOpenPopModal] = useState(false);
 
-    {
-      id: 2,
-      img: "https://images.unsplash.com/photo-1699960586115-254faf72f378?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8Mnx8fGVufDB8fHx8fA%3D%3D",
-    },
+  const user = JSON.parse(localStorage.getItem("token")) || null;
+  const navigte = useNavigate();
 
-    {
-      id: 3,
-      img: "https://images.unsplash.com/photo-1708236361901-4b4e584a6baa?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8NHx8fGVufDB8fHx8fA%3D%3D",
-    },
+  const [favList, setFavList] = useState([]);
 
-    {
-      id: 4,
-      img: "https://images.unsplash.com/photo-1707343844152-6d33a0bb32c3?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+  const handleFavorite = async (e, item, userID) => {
+    if (!user?.token) {
+      return toast.error("You need to login first!");
+    }
+    const payload = {
+      userID: user?.user?._id,
+      mainUserID: userID,
+      postID: e,
+      postObject: item,
+    };
 
-    {
-      id: 5,
-      img: "https://images.unsplash.com/photo-1708179504036-0f952912eac8?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+    var count = 0;
+    for (let i = 0; i < favList.length; i++) {
+      if (favList[i].postID === e) {
+        await axios.delete(URLS + `/fav/${favList[i]._id}`, {
+          headers: {
+            Authorization: user?.token,
+            "Content-Type": "application/json",
+          },
+        });
+        getAllFavouritesItem();
+        toast.success("Item is removed from favorite list!");
+        setDatas(!datas);
+        return;
+      } else {
+        count++;
+      }
+    }
 
-    {
-      id: 6,
-      img: "https://images.unsplash.com/photo-1708176469286-366e7affd24a?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+    if (count === favList.length) {
+      await axios.post(URLS + "/fav/create", payload, {
+        headers: {
+          Authorization: user?.token,
+          "Content-Type": "application/json",
+        },
+      });
+      getAllFavouritesItem();
+      toast.success("Item is added to favorite list!");
+      setDatas(!datas);
+    }
+  };
 
-    {
-      id: 7,
-      img: "https://images.unsplash.com/photo-1708024975443-fd628051db27?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+  const createRedFillHeart = (id) => {
+    var array = [];
+    for (let i = 0; i < favList.length; i++) {
+      if (favList[i] !== undefined) {
+        array.push(favList[i].postID);
+      }
+    }
 
-    {
-      id: 8,
-      img: "https://images.unsplash.com/photo-1682686581427-7c80ab60e3f3?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+    return array;
+  };
 
-    {
-      id: 9,
-      img: "https://plus.unsplash.com/premium_photo-1706911687157-bd8e41504a60?q=80&w=1892&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+  const getAllFavouritesItem = async () => {
+    try {
+      const res = await axios.get(URLS + `/fav/prod/${user?.user?._id}`, {
+        headers: {
+          Authorization: user?.token,
+          "Content-Type": "application/json",
+        },
+      });
+      setFavList(res?.data);
+      createRedFillHeart();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    {
-      id: 10,
-      img: "https://images.unsplash.com/photo-1708169542550-f627d8a4bd26?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
+  const handleOpenPopModal = (item) => {
+    setOpenPopModal(true);
+    setPopModal(item);
+  };
 
-    {
-      id: 11,
-      img: "https://images.unsplash.com/photo-1707900599508-ef5bfe8ab070?q=80&w=1888&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ];
+  useEffect(() => {
+    getAllFavouritesItem();
+  }, [datas]);
+
+  const handlePlusLock = (e, ee, url, title) => {
+    if (e === true && ee === true) {
+      toast.success("Download successful!");
+      downLoadImage(url, title.split(" ")[0]);
+      return true;
+    } else if (e === true && ee === false) {
+      toast.success("Download successful!");
+      downLoadImage(url, title.split(" ")[0]);
+      return true;
+    } else if (e === false && ee === false) {
+      toast.success("Download successful!");
+      downLoadImage(url, `PhotoFy ${title.split(" ")[0]}`);
+      return true;
+    } else if (e === false && ee === true) {
+      navigte("/photoFy+");
+      toast.error("You have to take a subscription first!");
+      return false;
+    } else if (!user && ee === false) {
+      toast.success("Download successful!");
+      downLoadImage(url, `PhotoFy ${title.split(" ")[0]}`);
+    } else if (!user && ee === true) {
+      navigte("/");
+      toast.error("You need to login first!");
+    }
+  };
 
   return (
     <>
-      <div className="gallery">
-        {data.map((item, index) => {
-          return (
-            <div className="pics" key={index}>
-              <img src={item.img} alt="" style={{ width: "100%" }} />
-            </div>
-          );
-        })}
+      <div className="mainGallery mb-10">
+        <div className="gallery">
+          {data.map((item, index) => {
+            return (
+              <div className="pics" key={index}>
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  style={{ width: "100%" }}
+                  onClick={() => handleOpenPopModal(item)}
+                />
+
+                <div
+                  className=" assets absolute top-4 right-4 hidden h-fit w-fit bg-white p-2 px-3 rounded-md"
+                  onClick={() => handleFavorite(item._id, item, item.userID)}
+                >
+                  <AiFillHeart
+                    size={23}
+                    className={
+                      createRedFillHeart(item?._id).find(
+                        (ele, ind) => ele === item?._id
+                      )
+                        ? " fill-rose-500"
+                        : "fill-gray-500"
+                    }
+                  />
+                </div>
+
+                {item.plus && (
+                  <div className=" assets absolute top-4 left-4 h-fit w-fit bg-black opacity-[0.7] text-sm p-1 px-4 rounded-full font-semibold  text-white">
+                    PhotoFy+
+                  </div>
+                )}
+
+                <Link to={`/userprofile/${item?.userID}`}>
+                  <div className=" assets absolute bottom-2 left-4 hidden h-fit w-fit  rounded-md">
+                    <div className=" flex h-12 w-12 rounded-full bg-white">
+                      <img
+                        src={item?.userObject?.user?.imageUrl}
+                        alt=""
+                        className=" w-full h-full rounded-full"
+                      />
+                    </div>
+                    <p className=" w-48">{item?.userObject?.user?.name}</p>
+                  </div>
+                </Link>
+
+                <div
+                  className=" assets absolute bottom-2 right-4 hidden h-fit w-fit bg-white p-2 px-3 rounded-md"
+                  onClick={() =>
+                    handlePlusLock(
+                      user?.user?.plus,
+                      item?.plus,
+                      item?.imageUrl,
+                      item?.title
+                    )
+                  }
+                >
+                  <IoMdDownload size={23} fill="gray" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {openPopModal && (
+        <PopModal popModal={popModal} setOpenPopModal={setOpenPopModal} />
+      )}
     </>
   );
 };
 
 export default Gallery;
+
+const downLoadImage = async (imageSrc, imageName) => {
+  const imageBlob = await fetch(imageSrc)
+    .then((res) => res.arrayBuffer())
+    .then((buffer) => new Blob([buffer], { type: "image/jpeg" }));
+  console.log(imageBlob, "kjkjh");
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(imageBlob);
+  link.download = imageName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};

@@ -21,7 +21,7 @@ const ImageUploaders = () => {
       .catch((error) => console.error("Error:", error));
   };
 
-  console.log(imageUrl);
+ 
 
   return (
     <div>

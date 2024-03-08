@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { Image } from "cloudinary-react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 import { URL } from "../assests/assets";
 import toast from "react-hot-toast";
 
@@ -12,6 +12,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [desc, setDesc] = useState("");
   const navigate = useNavigate();
 
   const handleImageUpload = (event) => {
@@ -32,24 +33,46 @@ const Register = () => {
   };
 
   const handleRegister = async () => {
+    if (name.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
+
+    if (desc.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
+
+    if (desc.length > 200) {
+      return toast.error("Description length can not be more than 200!");
+    }
+
+    if (email.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
+
+    if (password.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
+
+    if (imageUrl.length === 0) {
+      return toast.error("Name field is mandetory!");
+    }
+
     try {
       const payload = {
         name,
         email,
         password,
         imageUrl,
+        desc,
       };
 
-      console.log(payload)
-  
-      const res = await axios.post(URL + "/auth/register", payload)
+      const res = await axios.post(URL + "/auth/register", payload);
       if (res.status === 200) {
-       
         toast.success("Register successful!");
-        navigate("/login")
+        navigate("/login");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   };
 
@@ -72,17 +95,30 @@ const Register = () => {
             </label>
             <input
               type="text"
-              className=" border-b  outline-none py-1 font-thin text-sm"
+              className=" border rounded-md mt-2 px-3 py-1   outline-none  font-thin text-sm"
               onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name..."
             />
           </div>
+          <div className=" flex flex-col ">
+            <label htmlFor="" className=" text-sm  font-thin">
+              User's Description
+            </label>
+            <input
+              type="text"
+              className=" border rounded-md mt-2 px-3 py-1   outline-none  font-thin text-sm"
+              onChange={(e) => setDesc(e.target.value)}
+              placeholder="Describe your self with in 200 words"
+            />
+          </div>
+          <p className=" text-sm -mt-5">{desc.length}/200</p>
           <div className=" flex flex-col ">
             <label htmlFor="" className=" text-sm  font-thin">
               User's Email Id
             </label>
             <input
               type="text"
-              className=" border-b  outline-none py-1 font-thin text-sm "
+              className=" border rounded-md mt-2 px-3 py-1 px-3 py-1  outline-none py-1 font-thin text-sm "
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -90,10 +126,10 @@ const Register = () => {
             <label htmlFor="" className=" text-sm  font-thin">
               User's Password
             </label>
-            <div className=" border-b flex">
+            <div className=" border rounded-md mt-2  px-3 py-1 flex">
               <input
                 type={showPassword ? "text" : "password"}
-                className=" w-full  outline-none py-1 font-thin text-sm"
+                className=" w-full rounded-md  outline-none  font-thin text-sm"
                 onChange={(e) => setPassword(e.target.value)}
               />
               {showPassword ? (
@@ -123,7 +159,7 @@ const Register = () => {
                 onChange={handleImageUpload}
               />
               {imageUrl && (
-                <div className=" h-16 w-16 rounded-full border-2    ">
+                <div className=" h-16 w-16 rounded-full  border-2    ">
                   <Image
                     cloudName="sudevkumar"
                     publicId={imageUrl}
